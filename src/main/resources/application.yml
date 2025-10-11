@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:db}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:admin}
+  jpa:
+    hibernate:
+      ddl-auto: update   # ??? ????????; ?? ????? ????? ????????
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+
+server:
+  port: ${PORT:8080}
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:bWloYWlsZWJsYW5jaGtlZGZyZXRoeXJ0dG9waW1qeWh0bm9pcGpnZmhiaW9tbnBmZ25vbWlwa2ZnaG5samtmYmdua2pmZ2huams}          # ??????????? ??????
+    issuer: ${JWT_ISSUER:realty-api}
+    ttl-minutes: ${JWT_TTL_MINUTES:60}
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+
+
+auth:
+  username: ${AUTH_USERNAME:admin}  # ??????? in-memory ?????
+  password: ${AUTH_PASSWORD:admin}  # ??????? in-memory ??????
