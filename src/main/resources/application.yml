@@ -1,24 +1,27 @@
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:db}
-    username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:admin}
+    url: jdbc:postgresql://${DB_HOST:db-postgresql-fra1-66773-do-user-23232317-0.k.db.ondigitalocean.com}:${DB_PORT:25060}/${DB_NAME:w8realty}
+    username: ${DB_USER:doadmin}
+    password: ${DB_PASSWORD:AVNS_Q9-_DciptEOrAJ58zvx}
   jpa:
     hibernate:
       ddl-auto: update   # ??? ????????; ?? ????? ????? ????????
     properties:
       hibernate:
         format_sql: true
-    show-sql: true
-
+    show-sql: false
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 100MB
 server:
   port: ${PORT:8080}
 
 security:
   jwt:
-    secret: ${JWT_SECRET:bWloYWlsZWJsYW5jaGtlZGZyZXRoeXJ0dG9waW1qeWh0bm9pcGpnZmhiaW9tbnBmZ25vbWlwa2ZnaG5samtmYmdua2pmZ2huams}          # ??????????? ??????
+    secret: ${JWT_SECRET:bWloYWlsZWJsYW5jaGtlZGZyZXRoeXJ0dG9waW1qeWh0bm9pcGpnZmhiaW9tbnBmZ25vbWlwa2ZnaG5samtmYmdua2pmZ2huams}
     issuer: ${JWT_ISSUER:realty-api}
-    ttl-minutes: ${JWT_TTL_MINUTES:60}
+    ttl-minutes: ${JWT_TTL_MINUTES:43200}
 
 logging:
   level:
@@ -26,5 +29,5 @@ logging:
 
 
 auth:
-  username: ${AUTH_USERNAME:admin}  # ??????? in-memory ?????
-  password: ${AUTH_PASSWORD:admin}  # ??????? in-memory ??????
+  username: ${AUTH_USERNAME:admin}
+  password: ${AUTH_PASSWORD:admin}

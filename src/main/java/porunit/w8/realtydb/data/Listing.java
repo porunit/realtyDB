@@ -88,6 +88,12 @@ public class Listing {
     private Boolean agentCommission;   // 22. Комиссия агенту (да/нет)
     private Boolean vatIncluded;       // 23. НДС включён (да/нет)
 
+    @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("position ASC, createdAt ASC")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"data", "listing"})
+    private java.util.List<ListingPhoto> photos = new java.util.ArrayList<>();
+
+
     @CreationTimestamp
     private OffsetDateTime createdAt;
 
