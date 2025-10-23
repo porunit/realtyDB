@@ -14,6 +14,9 @@ spring:
     multipart:
       max-file-size: 20MB
       max-request-size: 100MB
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 server:
   port: ${PORT:8080}
 
@@ -27,6 +30,10 @@ logging:
   level:
     org.springframework.security: DEBUG
 
+yandex:
+  feed:
+    storageDir: ${YANDEX_FEED_DIR:/var/app/feeds/yandex}   # директория на диске
+    baseUrl: ${YANDEX_FEED_BASE_URL:localhost:8080/feeds/yandex}   # базовый публичный URL
 
 auth:
   username: ${AUTH_USERNAME:admin}
