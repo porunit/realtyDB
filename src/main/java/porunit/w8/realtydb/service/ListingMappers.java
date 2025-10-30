@@ -1,6 +1,6 @@
 package porunit.w8.realtydb.service;// porunit/w8/realtydb/web/mappers/ListingMappers.java
 
-import porunit.w8.realtydb.data.Listing;
+import porunit.w8.realtydb.data.domain.Listing;
 import porunit.w8.realtydb.data.ListingDto;
 import porunit.w8.realtydb.data.PhotoMetaDto;
 

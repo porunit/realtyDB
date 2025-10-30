@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import porunit.w8.realtydb.data.*;
+import porunit.w8.realtydb.data.domain.Listing;
 import porunit.w8.realtydb.repository.ListingPhotoRepository;
 import porunit.w8.realtydb.repository.ListingRepository;
 

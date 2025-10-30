@@ -1,6 +1,8 @@
 // web/dto/ListingDto.java
 package porunit.w8.realtydb.data;
 
+import porunit.w8.realtydb.data.domain.*;
+
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;

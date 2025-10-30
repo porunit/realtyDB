@@ -1,4 +1,4 @@
-package porunit.w8.realtydb.data;
+package porunit.w8.realtydb.data.domain;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;

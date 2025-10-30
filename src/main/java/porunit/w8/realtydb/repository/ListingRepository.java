@@ -1,7 +1,7 @@
 package porunit.w8.realtydb.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import porunit.w8.realtydb.data.Listing;
+import porunit.w8.realtydb.data.domain.Listing;
 
 import java.util.UUID;
 

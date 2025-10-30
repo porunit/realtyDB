@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/listings/*/photos/*/raw").permitAll()
                         .requestMatchers("/feeds/yandex/**").permitAll()
+                        .requestMatchers("/api/feeds/avito/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

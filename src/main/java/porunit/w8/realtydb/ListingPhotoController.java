@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import porunit.w8.realtydb.data.ListingPhoto;
+import porunit.w8.realtydb.data.domain.ListingPhoto;
 import porunit.w8.realtydb.data.PhotoMetaDto;
 import porunit.w8.realtydb.service.ListingPhotoService;
 

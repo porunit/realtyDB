@@ -4,8 +4,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import porunit.w8.realtydb.data.Listing;
-import porunit.w8.realtydb.data.ListingPhoto;
+import porunit.w8.realtydb.data.domain.Listing;
+import porunit.w8.realtydb.data.domain.ListingPhoto;
 import porunit.w8.realtydb.data.PhotoMetaDto;
 import porunit.w8.realtydb.data.PhotoMetaWithListingDto;
 

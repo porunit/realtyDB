@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import porunit.w8.realtydb.data.Listing;
+import porunit.w8.realtydb.data.domain.Listing;
 import porunit.w8.realtydb.data.ListingDto;
 import porunit.w8.realtydb.service.ListingService;
 
