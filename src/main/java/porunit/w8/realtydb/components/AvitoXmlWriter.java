@@ -62,7 +62,7 @@ public class AvitoXmlWriter {
 
         // Обязательные общие
         tag(w, "Id", l.getId().toString());
-        tag(w, "Description", safeDescription(l.getDescription()));
+        writeDescription(w, l.getDescription());
         tag(w, "Address", l.getLocation());
         tag(w, "Category", "Коммерческая недвижимость");
         tag(w, "Price", purpose == FeedPurpose.SALE
@@ -182,6 +182,23 @@ public class AvitoXmlWriter {
         // Авито просит CDATA для HTML, но plain текст без HTML допустим
         // мы пока отдаём как plain text
         return desc == null ? "" : desc;
+    }
+
+    private void writeDescription(XMLStreamWriter w, String desc) throws Exception {
+        w.writeStartElement("Description");
+
+        if (desc == null || desc.isBlank()) {
+            // Пустое описание – формально Авито требует обязательное поле,
+            // но если логика выше уже проверяет непустое – сюда обычно не попадём.
+            w.writeCData("");
+        } else {
+            // ВАЖНО: пишем как есть, без XML-эскейпинга, внутри CDATA
+            // Фронт должен следить, чтобы не было "]]>" внутри текста.
+            w.writeCData(desc);
+        }
+
+        w.writeEndElement();
+        w.writeCharacters("\n");
     }
 
     // ================= вспомогательные условия (должны совпадать с валидатором) ===============
