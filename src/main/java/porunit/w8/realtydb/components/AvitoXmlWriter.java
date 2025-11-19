@@ -2,7 +2,6 @@ package porunit.w8.realtydb.components;
 
 import org.springframework.stereotype.Component;
 import porunit.w8.realtydb.data.domain.Listing;
-import porunit.w8.realtydb.data.domain.ListingPhoto;
 import porunit.w8.realtydb.data.domain.feed.FeedPurpose;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -63,6 +62,7 @@ public class AvitoXmlWriter {
         // Обязательные общие
         tag(w, "Id", l.getId().toString());
         writeDescription(w, l.getDescription());
+        tag(w, "Title", l.getTitle());
         tag(w, "Address", l.getLocation());
         tag(w, "Category", "Коммерческая недвижимость");
         tag(w, "Price", purpose == FeedPurpose.SALE
@@ -278,7 +278,7 @@ public class AvitoXmlWriter {
         if (l.getOwnership() == null) return "Посредник";
         return switch (l.getOwnership()) {
             case OWNER -> "Собственник";
-            default    -> "Посредник";
+            default -> "Посредник";
         };
     }
 
@@ -299,6 +299,7 @@ public class AvitoXmlWriter {
             case OFFICE -> "Офисная";
         };
     }
+
     private String mapBuildingType(Listing l) {
         if (l.getBuildingType() == null) return "Другой";
         return switch (l.getBuildingType()) {
@@ -313,8 +314,8 @@ public class AvitoXmlWriter {
     private String mapParkingType(Listing l) {
         if (l.getParking() == null) return "Нет";
         return switch (l.getParking()) {
-            case NONE     -> "Нет";
-            case STREET   -> "На улице";
+            case NONE -> "Нет";
+            case STREET -> "На улице";
             case IN_BUILDING -> "В здании";
         };
     }
@@ -334,19 +335,20 @@ public class AvitoXmlWriter {
         if (l.getOwnership() == null) return "Прямая";
         return switch (l.getOwnership()) {
             case OWNER -> "Прямая";
-            default    -> "Субаренда";
+            default -> "Субаренда";
         };
     }
 
     private String buildPhotoUrl(UUID listingId, UUID photoId) {
         String base = System.getenv()
-                .getOrDefault("PUBLIC_BASE_URL","https://plankton-app-equrn.ondigitalocean.app");
+                .getOrDefault("PUBLIC_BASE_URL", "https://plankton-app-equrn.ondigitalocean.app");
         return base + "/api/listings/" + listingId + "/photos/" + photoId + "/raw";
     }
 
     private String nowIso() {
         return OffsetDateTime.now().format(ISO_FORMATTER);
     }
+
     private String nowIsoPlusDays(int days) {
         return OffsetDateTime.now().plusDays(days).format(ISO_FORMATTER);
     }
