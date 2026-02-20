@@ -1,4 +1,3 @@
-// porunit/w8/realtydb/ListingController.java
 package porunit.w8.realtydb;
 
 import jakarta.validation.Valid;
@@ -6,9 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import porunit.w8.realtydb.data.domain.Listing;
 import porunit.w8.realtydb.data.ListingDto;
+import porunit.w8.realtydb.data.ListingRequest;
+import porunit.w8.realtydb.data.domain.Listing;
+import porunit.w8.realtydb.data.statistics.ListingStatisticsDto;
 import porunit.w8.realtydb.service.ListingService;
+import porunit.w8.realtydb.service.ListingStatisticsService;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,32 +21,30 @@ import java.util.UUID;
 public class ListingController {
 
     private final ListingService service;
+    private final ListingStatisticsService statisticsService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Listing create(@Valid @RequestBody Listing listing) {
-        return service.create(listing);
+    public Listing create(@Valid @RequestBody ListingRequest request) {
+        return service.create(request);
     }
 
-    // ВАЖНО: теперь отдаём DTO + метаданные фото (тонко)
     @GetMapping
     public List<ListingDto> getAll() {
         return service.findAllDto();
     }
 
-    // Если хочешь, чтобы одиночный тоже был DTO:
     @GetMapping("/{id}")
     public ListingDto getOne(@PathVariable UUID id) {
         return service.findDtoById(id);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity update(@PathVariable UUID id, @Valid @RequestBody Listing listing) {
-        service.update(id, listing);
+    public ResponseEntity<?> update(@PathVariable UUID id, @Valid @RequestBody ListingRequest request) {
+        service.update(id, request);
         return ResponseEntity.ok().body("{}");
     }
 
-    // Доп. «view» можно оставить, но он уже дублирует getOne()
     @GetMapping("/{id}/view")
     public ListingDto getOneView(@PathVariable UUID id) {
         return service.findDtoById(id);
@@ -54,5 +54,10 @@ public class ListingController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id) {
         service.delete(id);
+    }
+
+    @GetMapping("/{id}/statistics")
+    public ListingStatisticsDto getStatistics(@PathVariable UUID id) {
+        return statisticsService.getStatistics(id);
     }
 }

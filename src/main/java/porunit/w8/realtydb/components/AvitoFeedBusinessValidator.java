@@ -23,7 +23,6 @@ public class AvitoFeedBusinessValidator {
         for (Listing l : listings) {
             String oid = l.getId() == null ? "<no-id>" : l.getId().toString();
 
-            // базовые обязательные
             if (isBlank(l.getTitle())) {
                 errors.add(oid + ": пустой Title");
             }
@@ -37,63 +36,49 @@ public class AvitoFeedBusinessValidator {
                 errors.add(oid + ": нет Square (area)");
             }
 
-            // цена
             if (purpose == FeedPurpose.SALE) {
                 if (l.getPrice() == null) {
                     errors.add(oid + ": нет Price для продажи");
                 }
-            } else { // RENT
+            } else {
                 if (l.getMonthlyRent() == null) {
                     errors.add(oid + ": нет Price (monthlyRent) для аренды");
                 }
             }
 
-            // OperationType — у нас всегда "Продам" или "Сдам" => ок
-
-            // ObjectType
             String objectType = guessObjectType(l);
             if (isBlank(objectType)) {
                 errors.add(oid + ": не удалось определить ObjectType");
             }
 
-            // PropertyRights
             String propertyRights = mapPropertyRights(l);
             if (isBlank(propertyRights)) {
                 errors.add(oid + ": PropertyRights обязателен (Собственник/Посредник)");
             }
 
-            // Floor (если применимо)
             if (requiresFloor(objectType) && l.getFloor() == null) {
                 errors.add(oid + ": Floor обязателен для типа " + objectType);
             }
 
-            // Entrance (если обязателен)
             if (requiresEntranceHard(objectType)) {
                 if (mapEntrance(l) == null) {
                     errors.add(oid + ": Entrance обязателен для типа " + objectType);
                 }
             }
 
-            // Layout (обязательно для офисного помещения (и коворкинга в аренде, но пока коворкинг не мапим))
             if (requiresLayout(objectType, purpose)) {
-                // у нас сейчас Layout постоянный "Открытая"
-                // если захотим сделать поле – будем проверять по нему.
-                // Пока мы всегда будем писать Layout для офисов, без ошибок.
             }
 
-            // Decoration (обязателен для ряда типов)
             if (requiresDecoration(objectType)) {
                 if (mapDecoration(l) == null) {
                     errors.add(oid + ": Decoration обязателен для типа " + objectType);
                 }
             }
 
-            // BuildingType (обязателен всегда)
             if (isBlank(mapBuildingType(l))) {
                 errors.add(oid + ": BuildingType обязателен");
             }
 
-            // ParkingType (обязателен для ряда типов)
             if (requiresParkingType(objectType, purpose)) {
                 if (mapParkingType(l) == null) {
                     errors.add(oid + ": ParkingType обязателен для типа " + objectType);
@@ -101,12 +86,10 @@ public class AvitoFeedBusinessValidator {
             }
 
             if (purpose == FeedPurpose.SALE) {
-                // TransactionType обязателен
                 if (isBlank(mapTransactionType(l))) {
                     errors.add(oid + ": TransactionType обязателен для продажи");
                 }
             } else {
-                // RENT → RentalType обязателен
                 if (isBlank(mapRentalType(l))) {
                     errors.add(oid + ": RentalType обязателен для аренды");
                 }
@@ -131,8 +114,6 @@ public class AvitoFeedBusinessValidator {
         };
     }
 
-    // Entrance обязателен именно для (строго):
-    // "Торговое помещение", "Помещение свободного назначения", "Помещение общественного питания"
     private boolean requiresEntranceHard(String objectType) {
         return switch (objectType) {
             case "Торговое помещение",
@@ -150,17 +131,12 @@ public class AvitoFeedBusinessValidator {
         };
     }
 
-
-    // Layout обязателен для "Офисное помещение", и (в аренде) "Коворкинг"
     private boolean requiresLayout(String objectType, FeedPurpose purpose) {
         if (objectType.equals("Офисное помещение")) return true;
         if (purpose == FeedPurpose.RENT && objectType.equals("Коворкинг")) return true;
         return false;
     }
 
-    // Decoration обязателен для:
-    // "Офисное помещение", "Помещение свободного назначения", "Торговое помещение",
-    // "Помещение общественного питания", "Гостиница", "Здание"
     private boolean requiresDecoration(String objectType) {
         return switch (objectType) {
             case "Офисное помещение",
@@ -173,9 +149,6 @@ public class AvitoFeedBusinessValidator {
         };
     }
 
-    // ParkingType обязателен для:
-    // продажа: офис, псн, торговое, общепит, гостиница, здание
-    // аренда: те же + коворкинг
     private boolean requiresParkingType(String objectType, FeedPurpose purpose) {
         return switch (objectType) {
             case "Офисное помещение",
@@ -189,10 +162,7 @@ public class AvitoFeedBusinessValidator {
         };
     }
 
-    // --- вспомогательные мапперы (эти должны повторять логику AvitoXmlWriter):
-
     private String guessObjectType(Listing l) {
-        // синхронно mapObjectType из writer
         var bt = l.getBuildingType() == null ? "" : l.getBuildingType().name().toLowerCase();
         if (bt.contains("office")) return "Офисное помещение";
         if (bt.contains("retail") || bt.contains("shop") || bt.contains("shopping")) {
@@ -202,9 +172,7 @@ public class AvitoFeedBusinessValidator {
     }
 
     private String mapPropertyRights(Listing l) {
-        // см. маппер выше в тексте, тут дублируем либо вынеси в утилиту
         if (l.getOwnership() == null) return "Посредник";
-        // пример:
         return switch (l.getOwnership()) {
             case OWNER -> "Собственник";
             default -> "Посредник";
@@ -232,8 +200,8 @@ public class AvitoFeedBusinessValidator {
     }
 
     private String mapParkingType(Listing l) {
-        if (l.getParking() == null) return "Нет";
-        return switch (l.getParking()) {
+        if (l.getParkingType() == null) return "Нет";
+        return switch (l.getParkingType()) {
             case NONE     -> "Нет";
             case STREET   -> "На улице";
             case IN_BUILDING -> "В здании";
@@ -253,7 +221,7 @@ public class AvitoFeedBusinessValidator {
     }
 
     private String mapTransactionType(Listing l) {
-        if (l.getDealType() == null) return "Продажа"; // дефолт
+        if (l.getDealType() == null) return "Продажа";
         return switch (l.getDealType()) {
             case SALE -> "Продажа";
             case LEASE_ASSIGNMENT -> "Переуступка права аренды";

@@ -1,4 +1,3 @@
-// porunit/w8/realtydb/ListingPhotoController.java
 package porunit.w8.realtydb;
 
 import jakarta.validation.constraints.NotEmpty;
@@ -26,9 +25,7 @@ public class ListingPhotoController {
             @PathVariable UUID listingId,
             @RequestPart("files") @NotEmpty List<MultipartFile> files
     ) throws IOException {
-        // сохраняем как раньше, но отдаём метаданные «тонко»
-        var saved = service.upload(listingId, files);
-        // чтобы не тянуть entity -> JSON, просто перечитаем меты «тонко»
+        service.upload(listingId, files);
         return service.listMeta(listingId);
     }
 

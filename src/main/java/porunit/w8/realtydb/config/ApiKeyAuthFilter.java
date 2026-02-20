@@ -27,7 +27,6 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
 
-        // Разрешаем preflight без ключа
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             chain.doFilter(request, response);
             return;
@@ -37,7 +36,6 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         if (provided != null) provided = provided.trim();
 
         if (StringUtils.hasText(expectedApiKey) && expectedApiKey.equals(provided)) {
-            // ✅ Аутентифицируем запрос
             String finalProvided = provided;
             AbstractAuthenticationToken auth =
                     new AbstractAuthenticationToken(List.of(new SimpleGrantedAuthority("ROLE_API"))) {
@@ -51,7 +49,6 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        // ❌ Неверный/отсутствующий ключ → свой ответ с телом
         log.warn("Unauthorized request: path={}, method={}, hasHeader={}",
                 request.getRequestURI(), request.getMethod(), (provided != null));
 

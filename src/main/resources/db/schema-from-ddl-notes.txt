@@ -1,0 +1,24 @@
+# Соответствие схемы БД и JPA-сущностей
+
+Приложение настроено под вашу схему БД. Используется JPA с enum-полями в виде строк
+(без отдельных таблиц-справочников для enum). Если вы поднимаете БД по вашему DDL:
+
+1. Таблицы-справочники (user_role, feed_purpose, building_type_enum и т.д.) нужно создать
+   и заполнить значениями (USER, ADMIN; SALE, RENT; BUSINESS_CENTER, ...).
+
+2. Либо отключите FK на эти справочники в DDL и храните значения enum прямо в колонках
+   (как делает Hibernate при ddl-auto: update).
+
+Маппинг таблиц:
+- "user" -> User (role_id = USER|ADMIN)
+- owner -> Owner (ownership_type_id = OWNER|BROKER)
+- building -> Building (building_type_id)
+- deal -> Deal (deal_type_id = SALE|LEASE_ASSIGNMENT)
+- parking -> ParkingEntity (parking_type_id)
+- readiness -> ReadinessEntity (readiness_type_id)
+- listing -> Listing (owner_id, building_id, deal_id, parking_id, readiness_id, created_by)
+- avito_feed -> AvitoFeed (purpose_id, created_by)
+- feed_listing -> FeedListing (feed_id, listing_id, added_at)
+- listing_photos -> ListingPhoto (cover, created_at)
+
+Роли: USER (вместо OPERATOR), ADMIN. Регистрация требует email (уникальный).

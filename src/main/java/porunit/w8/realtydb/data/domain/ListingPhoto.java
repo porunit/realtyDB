@@ -35,7 +35,7 @@ public class ListingPhoto {
 
 
     @Column(name = "content_type", length = 100, nullable = false)
-    private String contentType;     // image/jpeg, image/png ...
+    private String contentType;
 
     @Column(name = "filename")
     private String filename;
@@ -44,11 +44,12 @@ public class ListingPhoto {
     private long sizeBytes;
 
     @Column(name = "position", nullable = false)
-    private int position;           // порядок (0..8). 0 можно считать «обложкой» по умолчанию
+    private int position;
 
-    @Column(name = "is_cover", nullable = false)
-    private boolean cover;          // явная обложка
+    @Column(name = "cover", nullable = false)
+    private boolean cover;
 
     @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 }

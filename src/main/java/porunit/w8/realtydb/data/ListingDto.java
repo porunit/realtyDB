@@ -1,4 +1,3 @@
-// web/dto/ListingDto.java
 package porunit.w8.realtydb.data;
 
 import porunit.w8.realtydb.data.domain.*;
@@ -37,5 +36,5 @@ public record ListingDto(
     Boolean vatIncluded,
     OffsetDateTime createdAt,
     OffsetDateTime updatedAt,
-    List<PhotoMetaDto> photos // только метаданные
+    List<PhotoMetaDto> photos
 ) {}

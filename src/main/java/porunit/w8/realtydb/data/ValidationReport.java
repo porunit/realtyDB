@@ -14,8 +14,8 @@ public class ValidationReport {
 
   @Data @Builder
   public static class Issue {
-    private String code;     // например, TYPE_INVALID
-    private String message;  // человекочитаемо
-    private String path;     // путь в XML (offer[internal-id=...]/type)
+    private String code;
+    private String message;
+    private String path;
   }
 }

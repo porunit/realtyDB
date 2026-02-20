@@ -32,12 +32,19 @@ public class JwtService {
 
         SecretKey key = Keys.hmacShaKeyFor(secret.getBytes());
 
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(subject)
                 .issuer(issuer)
                 .issuedAt(Date.from(now))
-                .expiration(Date.from(exp))
-                .signWith(key, Jwts.SIG.HS256)
-                .compact();
+                .expiration(Date.from(exp));
+
+        if (roles != null && !roles.isEmpty()) {
+            builder.claim("roles", roles);
+        }
+        if (extraClaims != null && !extraClaims.isEmpty()) {
+            extraClaims.forEach(builder::claim);
+        }
+
+        return builder.signWith(key, Jwts.SIG.HS256).compact();
     }
 }

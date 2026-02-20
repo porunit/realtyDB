@@ -17,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "listings")
+@Table(name = "listing")
 public class Listing {
 
     @Id
@@ -25,78 +25,134 @@ public class Listing {
     private UUID id;
 
     @NotBlank
-    private String title;              // 1. Название
+    @Column(nullable = false, length = 500)
+    private String title;
 
     @Column(columnDefinition = "text")
-    private String description;        // 2. Описание
+    private String description;
 
     @Positive
-    private BigDecimal price;          // 3. Цена
+    @Column(name = "price", precision = 15, scale = 2)
+    private BigDecimal price;
 
-    private String location;           // 4. Расположение
+    @Column(name = "location", length = 500)
+    private String location;
 
-    @Enumerated(EnumType.STRING)
-    private OwnershipType ownership;   // 5. Право собственности
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private Owner owner;
 
     @Email
-    private String email;              // 6. Почта
+    @Column(name = "email", length = 255)
+    private String email;
 
-    private String companyName;        // 7. Название компании
+    @Column(name = "company_name", length = 255)
+    private String companyName;
 
-    private String phone;              // 8. Телефон
+    @Column(name = "phone", length = 50)
+    private String phone;
 
     @Enumerated(EnumType.STRING)
-    private EntranceType entrance;     // 9. Вход
+    @Column(name = "entrance_type_id", length = 20)
+    private EntranceType entranceType;
 
-    private Integer floor;             // 10. Этаж
+    @Column(name = "floor")
+    private Integer floor;
 
     @Positive
-    private Double area;               // 11. Площадь (м²)
+    @Column(name = "area")
+    private Double area;
 
     @Positive
-    private Double ceilingHeight;      // 12. Высота потолков (м)
+    @Column(name = "ceiling_height")
+    private Double ceilingHeight;
 
     @Enumerated(EnumType.STRING)
-    private Finishing finishing;       // 13. Отделка
+    @Column(name = "finishing_id", length = 20)
+    private Finishing finishing;
 
     @Positive
-    private Integer powerKw;           // 14. Мощность электросети (кВт)
+    @Column(name = "power_kw")
+    private Integer powerKw;
 
     @Enumerated(EnumType.STRING)
-    private Heating heating;           // 15. Отопление
+    @Column(name = "heating_id", length = 20)
+    private Heating heating;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "readiness_id")
+    private ReadinessEntity readiness;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "building_id")
+    private Building building;
 
     @Enumerated(EnumType.STRING)
-    private Readiness readiness;       // 16. Готовность
+    @Column(name = "road_distance_id", length = 30)
+    private RoadDistance roadDistance;
 
-    @Enumerated(EnumType.STRING)
-    private BuildingType buildingType; // 17. Тип здания
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parking_id")
+    private ParkingEntity parking;
 
-    @Enumerated(EnumType.STRING)
-    private RoadDistance roadDistance; // 18. Удаленность от дороги
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "deal_id")
+    private Deal deal;
 
-    @Enumerated(EnumType.STRING)
-    private Parking parking;           // 19. Парковка
+    @Column(name = "leased")
+    private Boolean leased;
 
-    @Enumerated(EnumType.STRING)
-    private DealType dealType;         // 20. Тип сделки
+    @Column(name = "tenant", length = 255)
+    private String tenant;
 
-    private Boolean leased;            // 21. Помещение сдано (да/нет)
+    @Column(name = "monthly_rent", precision = 15, scale = 2)
+    private BigDecimal monthlyRent;
 
-    private String tenant;             // если сдано: арендатор
-    private BigDecimal monthlyRent;    // если сдано: месячный платеж
+    @Column(name = "agent_commission")
+    private Boolean agentCommission;
 
-    private Boolean agentCommission;   // 22. Комиссия агенту (да/нет)
-    private Boolean vatIncluded;       // 23. НДС включён (да/нет)
+    @Column(name = "vat_included")
+    private Boolean vatIncluded;
 
     @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC, createdAt ASC")
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"data", "listing"})
     private java.util.List<ListingPhoto> photos = new java.util.ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private User createdBy;
 
     @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
     @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    public OwnershipType getOwnership() {
+        return owner != null ? owner.getOwnershipType() : null;
+    }
+
+    public EntranceType getEntrance() {
+        return entranceType;
+    }
+
+    public BuildingType getBuildingType() {
+        return building != null ? building.getBuildingType() : null;
+    }
+
+    public DealType getDealType() {
+        return deal != null ? deal.getDealType() : null;
+    }
+
+    public Parking getParkingType() {
+        return parking != null ? parking.getParkingType() : null;
+    }
+
+    public Readiness getReadinessType() {
+        return readiness != null ? readiness.getReadinessType() : null;
+    }
 }

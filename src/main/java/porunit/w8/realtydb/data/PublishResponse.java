@@ -7,7 +7,7 @@ import lombok.Data;
 @Builder
 public class PublishResponse {
   private boolean published;
-  private String feedId;     // UUID
-  private String url;        // public ссылка /feeds/yandex/{feedId}.xml
+  private String feedId;
+  private String url;
   private ValidationReport report;
 }

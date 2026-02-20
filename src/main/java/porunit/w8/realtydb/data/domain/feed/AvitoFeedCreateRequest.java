@@ -7,6 +7,6 @@ import java.util.List;
 import java.util.UUID;
 
 public record AvitoFeedCreateRequest(
-        @NotNull FeedPurpose purpose,        // SALE или RENT
-        @NotEmpty List<UUID> listingIds      // какие объявления включить в фид
+        @NotNull FeedPurpose purpose,
+        @NotEmpty List<UUID> listingIds
 ) {}

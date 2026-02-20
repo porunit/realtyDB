@@ -8,7 +8,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-// WebConfig.java — раздаём файлы из файловой системы по /feeds/yandex/**
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 

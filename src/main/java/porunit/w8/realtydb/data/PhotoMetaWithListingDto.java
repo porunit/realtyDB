@@ -1,4 +1,3 @@
-// porunit/w8/realtydb/data/PhotoMetaWithListingDto.java
 package porunit.w8.realtydb.data;
 
 import java.util.UUID;

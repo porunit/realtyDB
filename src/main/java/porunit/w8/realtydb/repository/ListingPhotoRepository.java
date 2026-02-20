@@ -9,7 +9,6 @@ import porunit.w8.realtydb.data.domain.ListingPhoto;
 import porunit.w8.realtydb.data.PhotoMetaDto;
 import porunit.w8.realtydb.data.PhotoMetaWithListingDto;
 
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -17,11 +16,15 @@ import java.util.UUID;
 
 @Repository
 public interface ListingPhotoRepository extends JpaRepository<ListingPhoto, UUID> {
-    List<ListingPhoto> findByListingOrderByPositionAscCreatedAtAsc(Listing listing);
-    long countByListing(Listing listing);
-    Optional<ListingPhoto> findByIdAndListing(UUID id, Listing listing);
 
-    Object findByListing_IdOrderByPositionAscCreatedAtAsc(UUID listingId);
+    @Query("select p from ListingPhoto p where p.listing = :listing order by p.position asc, p.createdAt asc")
+    List<ListingPhoto> findByListingOrderByPositionAscCreatedAtAsc(@Param("listing") Listing listing);
+
+    @Query("select count(p) from ListingPhoto p where p.listing = :listing")
+    long countByListing(@Param("listing") Listing listing);
+
+    @Query("select p from ListingPhoto p where p.id = :id and p.listing = :listing")
+    Optional<ListingPhoto> findByIdAndListing(@Param("id") UUID id, @Param("listing") Listing listing);
 
     @Query("""
       select new porunit.w8.realtydb.data.PhotoMetaDto(
@@ -43,4 +46,6 @@ public interface ListingPhotoRepository extends JpaRepository<ListingPhoto, UUID
     """)
     List<PhotoMetaWithListingDto> findMetaByListingIdIn(@Param("listingIds") Collection<UUID> listingIds);
 
+    @Query("select p from ListingPhoto p where p.id = :id")
+    Optional<ListingPhoto> findById(@Param("id") UUID id);
 }

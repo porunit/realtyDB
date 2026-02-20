@@ -4,15 +4,14 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import porunit.w8.realtydb.components.AvitoFeedBusinessValidator;
 import porunit.w8.realtydb.components.AvitoXmlWriter;
-import porunit.w8.realtydb.data.domain.*;
+import porunit.w8.realtydb.data.domain.Listing;
+import porunit.w8.realtydb.data.domain.User;
 import porunit.w8.realtydb.data.domain.feed.*;
-import porunit.w8.realtydb.repository.AvitoFeedItemRepository;
 import porunit.w8.realtydb.repository.AvitoFeedRepository;
+import porunit.w8.realtydb.repository.FeedListingRepository;
 import porunit.w8.realtydb.repository.ListingRepository;
-
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,15 +23,14 @@ public class AvitoFeedService {
 
     private final ListingRepository listingRepository;
     private final AvitoFeedRepository feedRepository;
-    private final AvitoFeedItemRepository feedItemRepository;
+    private final FeedListingRepository feedListingRepository;
     private final AvitoFeedBusinessValidator validator;
     private final AvitoXmlWriter writer;
+    private final UserService userService;
 
     public AvitoFeedCreateResponse createFeed(AvitoFeedCreateRequest req) throws Exception {
-        // 1. Достать листинги
         List<Listing> listings = listingRepository.findAllById(req.listingIds());
         if (listings.size() != req.listingIds().size()) {
-            // кто-то не найден
             Set<UUID> found = listings.stream().map(Listing::getId).collect(Collectors.toSet());
             for (UUID id : req.listingIds()) {
                 if (!found.contains(id)) {
@@ -41,41 +39,38 @@ public class AvitoFeedService {
             }
         }
 
-        // 2. Бизнес-валидация
         var check = validator.validate(listings, req.purpose());
         if (!check.valid()) {
             throw new IllegalArgumentException("Feed validation failed: " + String.join("; ", check.errors()));
         }
 
-        // 3. Генерация XML
         String xml = writer.generateXml(listings, req.purpose());
 
-        // 4. Сохранить AvitoFeed
+        User currentUser = userService.requireCurrentUser();
+        if (currentUser.getId() == null) {
+            throw new IllegalStateException("Config admin cannot create feeds. Register an admin user and use it.");
+        }
         AvitoFeed feed = new AvitoFeed();
         feed.setPurpose(req.purpose());
         feed.setXmlPayload(xml);
-
+        feed.setCreatedBy(currentUser);
         feed = feedRepository.save(feed);
 
-        // 5. Сохранить AvitoFeedItem связи
-        List<AvitoFeedItem> items = new ArrayList<>();
         for (Listing l : listings) {
-            AvitoFeedItem it = AvitoFeedItem.builder()
+            FeedListing fl = FeedListing.builder()
                     .feed(feed)
-                    .listingId(l.getId())
+                    .listing(l)
                     .build();
-            items.add(it);
+            feedListingRepository.save(fl);
         }
-        feedItemRepository.saveAll(items);
 
-        feed.setItems(items); // чтобы в ответе был доступен список
-
+        List<UUID> listingIds = listings.stream().map(Listing::getId).toList();
         return new AvitoFeedCreateResponse(
                 feed.getId(),
                 xmlUrl(feed.getId()),
                 feed.getCreatedAt(),
                 feed.getPurpose().name(),
-                items.stream().map(AvitoFeedItem::getListingId).toList()
+                listingIds
         );
     }
 
@@ -85,19 +80,14 @@ public class AvitoFeedService {
                 .sorted(Comparator.comparing(AvitoFeed::getCreatedAt).reversed())
                 .toList();
 
-        // грузим itemCount
-        Map<UUID, Long> counts = feedItemRepository.findAll().stream()
-                .collect(Collectors.groupingBy(it -> it.getFeed().getId(), Collectors.counting()));
-
         List<AvitoFeedListItemDto> out = new ArrayList<>();
-
         for (AvitoFeed f : feeds) {
-            long cnt = counts.getOrDefault(f.getId(), 0L);
+            int cnt = (int) feedListingRepository.countByFeed_Id(f.getId());
             out.add(new AvitoFeedListItemDto(
                     f.getId(),
                     f.getCreatedAt(),
                     f.getPurpose().name(),
-                    (int) cnt,
+                    cnt,
                     xmlUrl(f.getId())
             ));
         }
@@ -116,7 +106,6 @@ public class AvitoFeedService {
             throw new EntityNotFoundException("Feed not found: " + feedId);
         }
         feedRepository.deleteById(feedId);
-        // благодаря orphanRemoval = true на AvitoFeed.items, AvitoFeedItem строки тоже удалятся
     }
 
     private String xmlUrl(UUID feedId) {

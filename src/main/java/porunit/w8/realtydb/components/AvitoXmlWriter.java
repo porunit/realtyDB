@@ -36,7 +36,7 @@ public class AvitoXmlWriter {
             writeAd(w, l, purpose);
         }
 
-        w.writeEndElement(); // Ads
+        w.writeEndElement();
         w.writeCharacters("\n");
         w.writeEndDocument();
         w.flush();
@@ -46,20 +46,19 @@ public class AvitoXmlWriter {
     }
 
     private void writeAd(XMLStreamWriter w, Listing l, FeedPurpose purpose) throws Exception {
-        String objectType = mapObjectType(l);           // Вид объекта
-        String operationType = mapOperationType(purpose); // "Продам"/"Сдам"
-        String propertyRights = mapPropertyRights(l);   // "Собственник"/"Посредник"
+        String objectType = mapObjectType(l);
+        String operationType = mapOperationType(purpose);
+        String propertyRights = mapPropertyRights(l);
         String entrance = mapEntrance(l);
         String decoration = mapDecoration(l);
         String buildingType = mapBuildingType(l);
         String parkingType = mapParkingType(l);
-        String transactionType = mapTransactionType(l); // только для SALE
-        String rentalType = mapRentalType(l);           // только для RENT
+        String transactionType = mapTransactionType(l);
+        String rentalType = mapRentalType(l);
 
         w.writeStartElement("Ad");
         w.writeCharacters("\n");
 
-        // Обязательные общие
         tag(w, "Id", l.getId().toString());
         writeDescription(w, l.getDescription());
         tag(w, "Title", l.getTitle());
@@ -68,17 +67,14 @@ public class AvitoXmlWriter {
         tag(w, "Price", purpose == FeedPurpose.SALE
                 ? l.getPrice().toPlainString()
                 : l.getMonthlyRent().toPlainString());
-        tag(w, "OperationType", operationType); // "Продам"/"Сдам"
-        tag(w, "ObjectType", objectType);       // "Офисное помещение", ...
+        tag(w, "OperationType", operationType);
+        tag(w, "ObjectType", objectType);
 
-        tag(w, "PropertyRights", propertyRights); // "Собственник"/"Посредник"
+        tag(w, "PropertyRights", propertyRights);
 
-        // О помещении
         if (requiresEntranceHard(objectType)) {
-            // обязателен
             tag(w, "Entrance", entrance);
         } else if (entrance != null) {
-            // не обязателен, но можем вывести
             tag(w, "Entrance", entrance);
         }
 
@@ -86,29 +82,24 @@ public class AvitoXmlWriter {
             tag(w, "Floor", l.getFloor().toString());
         }
 
-        // Layout: только офис / (коворкинг в аренде)
         if (requiresLayout(objectType, purpose)) {
-            writeLayout(w); // пока жёстко "Открытая"
+            writeLayout(w);
         }
 
-        // Square — обязателен всегда
         if (l.getArea() != null) {
             tag(w, "Square", l.getArea().toString());
         }
 
-        // CeilingHeight — не всегда обязателен, но если есть — пишем
         if (l.getCeilingHeight() != null) {
             tag(w, "CeilingHeight", l.getCeilingHeight().toString());
         }
 
-        // Decoration (обязательна для многих типов)
         if (requiresDecoration(objectType) && decoration != null) {
             tag(w, "Decoration", decoration);
         } else if (decoration != null) {
             tag(w, "Decoration", decoration);
         }
 
-        // О здании
         tag(w, "BuildingType", buildingType);
 
         if (requiresParkingType(objectType, purpose) && parkingType != null) {
@@ -117,23 +108,18 @@ public class AvitoXmlWriter {
             tag(w, "ParkingType", parkingType);
         }
 
-        // Условия сделки
         if (purpose == FeedPurpose.SALE) {
-            tag(w, "TransactionType", transactionType); // "Продажа"/"Переуступка права аренды"
-            // Commission etc. можешь добавить позже (AgentSellCommissionSize)
+            tag(w, "TransactionType", transactionType);
         } else {
-            tag(w, "RentalType", rentalType); // "Прямая"/"Субаренда"
-            // AgentLeaseCommissionSize тоже можно добавить позже
+            tag(w, "RentalType", rentalType);
         }
 
-        // Фото
         writeImages(w, l);
 
-        // Срок публикации (необязательные для Авито, но не вредят)
         tag(w, "DateBegin", nowIso());
         tag(w, "DateEnd", nowIsoPlusDays(30));
 
-        w.writeEndElement(); // Ad
+        w.writeEndElement();
         w.writeCharacters("\n");
     }
 
@@ -154,12 +140,11 @@ public class AvitoXmlWriter {
             w.writeCharacters("\n");
         }
 
-        w.writeEndElement(); // Images
+        w.writeEndElement();
         w.writeCharacters("\n");
     }
 
     private void writeLayout(XMLStreamWriter w) throws Exception {
-        // временно шьём всегда "Открытая"
         w.writeStartElement("Layout");
         w.writeCharacters("\n");
         w.writeStartElement("Option");
@@ -179,8 +164,6 @@ public class AvitoXmlWriter {
     }
 
     private String safeDescription(String desc) {
-        // Авито просит CDATA для HTML, но plain текст без HTML допустим
-        // мы пока отдаём как plain text
         return desc == null ? "" : desc;
     }
 
@@ -188,20 +171,14 @@ public class AvitoXmlWriter {
         w.writeStartElement("Description");
 
         if (desc == null || desc.isBlank()) {
-            // Пустое описание – формально Авито требует обязательное поле,
-            // но если логика выше уже проверяет непустое – сюда обычно не попадём.
             w.writeCData("");
         } else {
-            // ВАЖНО: пишем как есть, без XML-эскейпинга, внутри CDATA
-            // Фронт должен следить, чтобы не было "]]>" внутри текста.
             w.writeCData(desc);
         }
 
         w.writeEndElement();
         w.writeCharacters("\n");
     }
-
-    // ================= вспомогательные условия (должны совпадать с валидатором) ===============
 
     private boolean requiresFloor(String objectType) {
         return switch (objectType) {
@@ -258,15 +235,12 @@ public class AvitoXmlWriter {
         };
     }
 
-    // ================= мапперы значений =================
-
     private String mapObjectType(Listing l) {
         var bt = l.getBuildingType() == null ? "" : l.getBuildingType().name().toLowerCase();
         if (bt.contains("office")) return "Офисное помещение";
         if (bt.contains("retail") || bt.contains("shopping") || bt.contains("shop")) {
             return "Торговое помещение";
         }
-        // fallback
         return "Помещение свободного назначения";
     }
 
@@ -312,17 +286,16 @@ public class AvitoXmlWriter {
     }
 
     private String mapParkingType(Listing l) {
-        if (l.getParking() == null) return "Нет";
-        return switch (l.getParking()) {
+        if (l.getParkingType() == null) return "Нет";
+        return switch (l.getParkingType()) {
             case NONE -> "Нет";
             case STREET -> "На улице";
             case IN_BUILDING -> "В здании";
         };
     }
 
-    // продажа
     private String mapTransactionType(Listing l) {
-        if (l.getDealType() == null) return "Продажа"; // дефолт
+        if (l.getDealType() == null) return "Продажа";
         return switch (l.getDealType()) {
             case SALE -> "Продажа";
             case LEASE_ASSIGNMENT -> "Переуступка права аренды";
@@ -330,7 +303,6 @@ public class AvitoXmlWriter {
         };
     }
 
-    // аренда
     private String mapRentalType(Listing l) {
         if (l.getOwnership() == null) return "Прямая";
         return switch (l.getOwnership()) {

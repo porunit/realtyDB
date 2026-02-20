@@ -1,8 +1,8 @@
-// porunit.w8.realtydb.advice.ApiExceptionHandler.java
 package porunit.w8.realtydb.advice;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
@@ -17,6 +18,7 @@ import java.time.OffsetDateTime;
 import java.util.*;
 
 @RestControllerAdvice
+@Slf4j
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
     public record ApiError(
@@ -28,7 +30,6 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
             Map<String, Object> details
     ) {}
 
-    // ⬇️ ВАЖНО: вместо @ExceptionHandler(HttpMessageNotWritableException)
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotWritable(HttpMessageNotWritableException ex,
                                                                   HttpHeaders headers,
@@ -73,7 +74,16 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return build(HttpStatus.valueOf(ex.getStatusCode().value()), ex.getReason(), req, null);
     }
 
-    // Bean Validation на @RequestBody
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiError> unauthorized(UnauthorizedException ex, ServletWebRequest req) {
+        return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), req, null);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiError> accessDenied(AccessDeniedException ex, ServletWebRequest req) {
+        return build(HttpStatus.FORBIDDEN, "Access denied", req, null);
+    }
+
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers,
@@ -86,7 +96,6 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(status).body(body);
     }
 
-    // Fallback на всё прочее
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> other(Exception ex, ServletWebRequest req) {
         Throwable root = org.springframework.core.NestedExceptionUtils.getMostSpecificCause(ex);
@@ -96,6 +105,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
             details.put("cause", root.getClass().getSimpleName());
             details.put("causeMessage", root.getMessage());
         }
+        log.error("Unexpected error occurred: {}", ex.getMessage(), ex);
+        log.error(details.toString());
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error", req, details);
     }
 

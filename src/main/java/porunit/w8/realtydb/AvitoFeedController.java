@@ -3,6 +3,7 @@ package porunit.w8.realtydb;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import porunit.w8.realtydb.data.domain.feed.AvitoFeedCreateRequest;
@@ -21,12 +22,14 @@ public class AvitoFeedController {
 
     private final AvitoFeedService service;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<AvitoFeedCreateResponse> create(@Valid @RequestBody AvitoFeedCreateRequest req) throws Exception {
         var resp = service.createFeed(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(resp);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public List<AvitoFeedListItemDto> list() {
         return service.listFeeds();
@@ -40,6 +43,7 @@ public class AvitoFeedController {
                 .body(xml);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{feedId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID feedId) {

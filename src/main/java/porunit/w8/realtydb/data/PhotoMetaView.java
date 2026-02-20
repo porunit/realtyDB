@@ -1,4 +1,3 @@
-// repo/projections/PhotoMetaView.java
 package porunit.w8.realtydb.data;
 
 import java.util.UUID;

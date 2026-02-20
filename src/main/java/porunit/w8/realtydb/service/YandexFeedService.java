@@ -19,7 +19,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 
-// YandexFeedService.java
 @Service
 @RequiredArgsConstructor
 public class YandexFeedService {
@@ -30,7 +29,7 @@ public class YandexFeedService {
   @Value("${yandex.feed.baseUrl}")
   private String baseUrl;
 
-  private static final Set<String> TYPE = Set.of("продажа","аренда","sale","rent"); // допустимые
+  private static final Set<String> TYPE = Set.of("продажа","аренда","sale","rent");
   private static final Set<String> CATEGORY = Set.of("коммерческая","commercial");
   private static final Set<String> COMMERCIAL_TYPE = Set.of(
       "auto repair","business","free purpose","hotel","land","legal address",
@@ -54,7 +53,7 @@ public class YandexFeedService {
 
       boolean hasType=false, hasCategory=false, hasLocation=false, hasPrice=false;
 
-      Deque<String> path = new ArrayDeque<>(); // стек локальных имён
+      Deque<String> path = new ArrayDeque<>();
 
       while (r.hasNext()) {
         int e = r.next();
@@ -78,21 +77,18 @@ public class YandexFeedService {
           String text = r.getText().trim();
           if (text.isEmpty()) continue;
 
-          String cur = path.peek();               // текущий элемент
-          String parent = path.size() > 1 ? path.toArray(new String[0])[1] : null; // родитель
+          String cur = path.peek();
+          String parent = path.size() > 1 ? path.toArray(new String[0])[1] : null;
 
-          // ВАЛИДИРУЕМ ТОЛЬКО /offer/category
           if ("category".equals(cur) && "offer".equals(parent)) {
             hasCategory = true;
             if (!CATEGORY.contains(text)) {
               errors.add(err("CATEGORY_INVALID", "category должен быть 'commercial/коммерческая'",
                       offerPath(currentOfferId)+"/category"));
             }
-            continue; // важно!
+            continue;
           }
 
-          // НЕ /offer/category — ничего не делаем (например sales-agent/category)
-          // Остальные проверки тоже делаем адресно по пути:
           if ("type".equals(cur) && "offer".equals(parent)) {
             hasType = true;
             if (!TYPE.contains(text)) {
@@ -123,7 +119,6 @@ public class YandexFeedService {
         } else if (e == XMLStreamConstants.END_ELEMENT) {
           String name = r.getLocalName();
 
-          // Флаги наличия блоков — по закрытию нужных узлов
           if ("price".equals(name) && inOffer) hasPrice = true;
           if ("location".equals(name) && inOffer) hasLocation = true;
 
@@ -136,11 +131,9 @@ public class YandexFeedService {
             currentOfferId = null;
           }
 
-          // снять текущий элемент со стека
           if (!path.isEmpty() && name.equals(path.peek())) {
             path.pop();
           } else {
-            // на всякий случай, если попался «сломанный» XML
             while (!path.isEmpty() && !name.equals(path.peek())) path.pop();
             if (!path.isEmpty()) path.pop();
           }
@@ -159,7 +152,6 @@ public class YandexFeedService {
   }
 
   public PublishResponse publish(InputStream xml) throws IOException {
-    // Читаем в память один раз, чтобы и проверить, и сохранить ровно этот же байтовый поток
     byte[] bytes = xml.readAllBytes();
     ValidationReport report = validate(new ByteArrayInputStream(bytes));
 
@@ -184,7 +176,6 @@ public class YandexFeedService {
         .build();
   }
 
-  // ==== helpers ====
   private static String getAttr(XMLStreamReader r, String name) {
     for (int i=0;i<r.getAttributeCount();i++) {
       if (name.equals(r.getAttributeLocalName(i))) return r.getAttributeValue(i);
